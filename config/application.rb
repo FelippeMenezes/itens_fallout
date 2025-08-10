@@ -11,6 +11,9 @@ module ItensFallout
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.1
 
+    # CORREÇÃO DEFINITIVA: Adiciona o caminho correto da gem bootstrap
+    config.assets.paths << Gem.loaded_specs['bootstrap'].full_gem_path + '/assets/stylesheets'
+
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
     # Common ones are `templates`, `generators`, or `middleware`, for example.

@@ -1,0 +1,12 @@
+.navbar-myproject {
+  justify-content: space-between;
+  background: white;
+}
+
+.navbar-myproject .navbar-collapse {
+  flex-grow: 0;
+}
+
+.navbar-myproject .navbar-brand img {
+  width: 40px;
+}

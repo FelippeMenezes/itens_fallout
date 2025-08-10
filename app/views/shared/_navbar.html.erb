@@ -1,0 +1,53 @@
+<nav class="navbar navbar-expand-sm navbar-light navbar-myproject">
+  <div class="container-fluid">
+    <%= link_to root_path, class: "navbar-brand" do %>
+      <%= image_tag 'https://emojicdn.elk.sh/📱' %>
+    <% end %>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ms-auto">
+                <% if user_signed_in? %>
+          <%# Set all menu items in one place %>
+          <% menu_items = [
+               { text: "Option 1", path: "#" },
+               { text: "Option 2", path: "#" },
+               { type: :divider },
+               { text: "Log Out", path: destroy_user_session_path, data: { turbo_method: :delete } }
+             ]
+          %>
+
+          <!-- ============== DESKTOP ============== -->
+          <li class="nav-item dropdown d-none d-md-block">
+            <%= image_tag 'https://emojicdn.elk.sh/📱', class: "avatar dropdown-toggle", id: "navbarDropdown", data: { bs_toggle: "dropdown" }, 'aria-haspopup': true, 'aria-expanded': false %>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+              <% menu_items.each do |item| %>
+                <% if item[:type] == :divider %>
+                  <hr class="dropdown-divider">
+                <% else %>
+                  <%= link_to item[:text], item[:path], class: "dropdown-item", data: item.fetch(:data, {}) %>
+                <% end %>
+              <% end %>
+            </div>
+          </li>
+
+          <!-- ============== MOBILE ============== -->
+          <% menu_items.each do |item| %>
+            <% next if item[:type] == :divider %>
+            <li class="nav-item d-block d-md-none">
+              <%= link_to item[:text], item[:path], class: "nav-link", data: item.fetch(:data, {}) %>
+            </li>
+          <% end %>
+
+        <% else %>
+          <li class="nav-item">
+            <%= link_to "Login", new_user_session_path, class: "nav-link" %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</nav>
