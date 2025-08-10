@@ -1,0 +1,80 @@
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  h1 { color: #333; }
+  .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+  .items-table th { background-color: #f2f2f2; }
+  .items-table tr:nth-child(even) { background-color: #f9f9f9; }
+  .items-table tr:hover { background-color: #f1f1f1; }
+  .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-found { background-color: #28a745;}
+  .btn-not-found { background-color: #dc3545;}
+  .status-found { color: green; font-weight: bold; }
+
+  .btn-delete {
+    background-color: #dd534eff;
+    font-size: 12px;
+  }
+  .btn-delete:hover {
+    background-color: #685a5aff;
+  }
+</style>
+
+<h1>Checklist de Itens - Fallout</h1>
+
+<div class="header-actions">
+  <%= link_to "Adicionar Novo Item", new_item_path, class: "btn-add" %>
+</div>
+
+<p>Bem-vindo, <%= current_user.email %>!</p>
+
+<table class="items-table">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Nome</th>
+      <th></th>
+      <th></th>
+      <th>Ação</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @items.each do |item| %>
+      <tr>
+        <td>
+          <% if @found_item_ids.include?(item.id) %>
+            <span class="status-found">✅</span>
+            <% else %>
+            <span class="status-not-found">🚫</span>
+          <% end %>
+        </td>
+        <td><%= item.name %></td>
+        <td><%= item.category %></td>
+        <td><%= item.rarity %></td>
+        <td>
+          <% is_found = @found_item_ids.include?(item.id) %>
+          <%= form_with(url: toggle_found_item_path(item), method: :post) do %>
+            <button type="submit" class="btn <%= is_found ? 'btn-not-found' : 'btn-found' %>">
+              <%= is_found ? '👎' : '👍' %>
+            </button>
+          <% end %>
+        </td>
+        <td>
+        <!-- NOVO BOTÃO DE REMOVER -->
+        <%= button_to "🗑️", item_path(item),
+                method: :delete,
+                class: "btn-delete",
+                data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
