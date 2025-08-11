@@ -1,8 +1,14 @@
-#!/bin/bash -e
+#!/bin/bash
+set -e
 
-# If running the rails server then create or migrate existing database
-if [ "${1}" == "./bin/rails" ] && [ "${2}" == "server" ]; then
-  ./bin/rails db:prepare
-fi
+# Remove um arquivo de PID pré-existente do servidor, se houver.
+rm -f /rails/tmp/pids/server.pid
 
-exec "${@}"
+# Executa as migrações do banco de dados.
+# O Rails é inteligente o suficiente para não rodar migrações que já foram aplicadas.
+bundle exec rails db:migrate
+
+# Então, executa o comando principal do contêiner (que será `bin/rails server`).
+# O "$@" passa todos os argumentos originais para o script.
+exec "$@"
+

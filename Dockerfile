@@ -26,8 +26,11 @@ COPY . .
 RUN bundle exec bootsnap precompile --gemfile && \
     bundle exec rails assets:precompile
 
-# Define o comando de inicialização
-ENTRYPOINT ["/rails/bin/docker-entrypoint"]
+# Copia o nosso novo script de entrypoint para o contêiner e o torna executável
+COPY bin/docker-entrypoint /usr/bin/
+RUN chmod +x /usr/bin/docker-entrypoint
+ENTRYPOINT ["docker-entrypoint"]
+
 
 # Expõe a porta 3000 e define o comando para iniciar o servidor
 EXPOSE 3000
