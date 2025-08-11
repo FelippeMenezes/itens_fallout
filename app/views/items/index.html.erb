@@ -71,6 +71,32 @@
     width: 100%; padding: 12px; font-size: 16px; border-radius: 5px;
     border: 1px solid #ccc; box-sizing: border-box;
   }
+
+  @media (max-width: 600px) {
+  /* Faz com que a tabela ocupe a largura total, mas permite scroll horizontal se necessário */
+  .items-table {
+    display: block; /* Muda o comportamento da tabela */
+    overflow-x: auto; /* Adiciona scroll horizontal APENAS se o conteúdo não couber */
+    white-space: nowrap; /* Evita que os botões quebrem linha de forma estranha */
+  }
+
+  /* Garante que as células não tentem espremer demais o conteúdo */
+  .items-table td, .items-table th {
+    padding: 8px 10px; /* Reduz um pouco o padding em ecrãs pequenos */
+  }
+
+  /* Ajusta o tamanho da fonte para melhor leitura */
+  .btn {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  /* Remove a largura fixa das colunas de ação para que se ajustem ao conteúdo */
+  .items-table th[style*="width: 10%"],
+  .items-table td {
+    width: auto !important; /* Permite que o browser calcule a largura necessária */
+  }
+}
 </style>
 
 
@@ -101,7 +127,6 @@
             <table class="items-table">
               <thead>
                 <tr>
-                  <th style="width: 5%;"></th>
                   <th>Nome</th>
                   <th style="width: 10%;">Ação</th>
                   <th style="width: 10%;"></th>
@@ -112,13 +137,6 @@
                   <%# ATUALIZAÇÃO AQUI: Adiciona a classe dinâmica ao <tr> %>
                   <% is_found = @found_item_ids.include?(item.id) %>
                   <tr id="item-row-<%= item.id %>" data-item-name="<%= item.name.downcase %>" class="<%= is_found ? 'row-found' : 'row-missing' %>">
-                    <td>
-                      <% if is_found %>
-                        <span class="status-found">✅</span>
-                      <% else %>
-                        <span class="status-not-found">🚫</span>
-                      <% end %>
-                    </td>
                     <td><%= item.name %></td>
                     <td>
                       <%= form_with(url: toggle_found_item_path(item), method: :post) do %>
@@ -145,68 +163,72 @@
 <% end %>
 
 <script>
-  document.addEventListener('turbo:load', function() {
-    // --- LÓGICA PARA MANTER A POSIÇÃO DO SCROLL (ESTÁ CORRETA, MANTENHA) ---
-    const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
-    if (scrolledItemId) {
-      const elementToScrollTo = document.getElementById(scrolledItemId);
-      if (elementToScrollTo) {
-        elementToScrollTo.scrollIntoView({ behavior: 'auto', block: 'center' });
-      }
-      sessionStorage.removeItem('scroll-to-item-id');
+  // ==========================================================================
+  // FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL
+  // Esta função contém toda a lógica que precisa de ser executada
+  // sempre que a página é carregada ou renderizada.
+  // ==========================================================================
+function initializePage() {
+  // --- LÓGICA PARA MANTER A POSIÇÃO DO SCROLL (O seu código aqui está bom) ---
+  const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
+  if (scrolledItemId) {
+    const elementToScrollTo = document.getElementById(scrolledItemId);
+    if (elementToScrollTo) {
+      elementToScrollTo.scrollIntoView({ behavior: 'instant', block: 'center' });
+    }
+    sessionStorage.removeItem('scroll-to-item-id');
+  }
+
+  // --- LÓGICA PARA RECOLHER/EXPANDIR (ACORDEÃO) - VERSÃO ROBUSTA ---
+  document.querySelectorAll('.collapsible').forEach(header => {
+    // Se o listener já foi adicionado, não faz nada.
+    if (header.dataset.listenerAttached === 'true') {
+      return;
+    }
+    header.dataset.listenerAttached = 'true';
+
+    const container = header.nextElementSibling;
+
+    // Garante que o estado visual corresponde ao estado lógico no carregamento
+    if (container.classList.contains('collapsed')) {
+      container.style.maxHeight = null; // Garante que está fechado
+    } else {
+      // Define a altura inicial corretamente
+      container.style.maxHeight = container.scrollHeight + "px";
     }
 
-    // --- LÓGICA PARA RECOLHER/EXPANDIR (ATUALIZADA) ---
-    const collapsibleHeaders = document.querySelectorAll('.collapsible');
-    collapsibleHeaders.forEach(header => {
-      const container = header.nextElementSibling;
+    // O evento 'click' é mais compatível em dispositivos móveis que 'mousedown'
+    header.addEventListener('click', function() {
+      // Alterna as classes de estado
+      this.classList.toggle('collapsed');
+      const content = this.nextElementSibling;
+      content.classList.toggle('collapsed');
 
-      // Inicia todos os grupos como expandidos por defeito.
-      // Esta verificação garante que, se um grupo já estiver recolhido
-      // (por exemplo, por uma ação anterior), ele permaneça assim.
-      if (!container.classList.contains('collapsed')) {
-        // Define a altura inicial para permitir a animação de fechar.
-        container.style.maxHeight = container.scrollHeight + "px";
+      // A lógica de animação:
+      // Se já tem um maxHeight (está aberto), fecha-o (define como null).
+      // Se não tem (está fechado), abre-o (define para a sua altura de scroll).
+      if (content.style.maxHeight) {
+        content.style.maxHeight = null;
       } else {
-        // Se já estiver recolhido, garante que a altura é 0.
-        container.style.maxHeight = null;
-      }
-
-      // Adiciona o evento de clique APENAS se ainda não tiver sido adicionado.
-      // Isto evita múltiplos eventos no mesmo elemento em algumas situações de cache do Turbo.
-      if (!header.dataset.listenerAttached) {
-        header.dataset.listenerAttached = 'true';
-        
-        header.addEventListener('click', function() {
-          this.classList.toggle('collapsed');
-          const content = this.nextElementSibling;
-          content.classList.toggle('collapsed');
-
-          // A MUDANÇA PRINCIPAL ESTÁ AQUI:
-          // Em vez de apenas remover a altura, recalculamos no momento do clique.
-          if (content.style.maxHeight) {
-            // Se tem max-height (está aberto), então fecha (recolhe).
-            content.style.maxHeight = null;
-          } else {
-            // Se não tem max-height (está fechado), então abre (expande).
-            // O cálculo de scrollHeight aqui garante que obtemos a altura correta
-            // do conteúdo, mesmo que ele tenha mudado.
-            content.style.maxHeight = content.scrollHeight + "px";
-          }
-        });
+        content.style.maxHeight = content.scrollHeight + "px";
       }
     });
-
-    // --- LÓGICA PARA O FILTRO DE BUSCA (ESTÁ CORRETA, MANTENHA) ---
-    // ... o seu código de busca continua aqui ...
   });
+}
 
-  // --- EVENT LISTENER PARA GUARDAR A POSIÇÃO (ESTÁ CORRETO, MANTENHA) ---
-  document.addEventListener('turbo:submit-start', function(event) {
-    const form = event.target;
-    const row = form.closest('tr');
-    if (row && row.id) {
-      sessionStorage.setItem('scroll-to-item-id', row.id);
-    }
-  });
+// ==========================================================================
+// EVENT LISTENERS DO TURBO (O seu código aqui está correto)
+// ==========================================================================
+document.addEventListener('turbo:load', initializePage);
+document.addEventListener('turbo:render', initializePage);
+
+document.addEventListener('turbo:submit-start', function(event) {
+  const form = event.target;
+  const row = form.closest('tr');
+  if (row && row.id) {
+    sessionStorage.setItem('scroll-to-item-id', row.id);
+  }
+});
+
 </script>
+
