@@ -1,80 +1,198 @@
 <style>
+  /* Estilos gerais (mantidos) */
   body { font-family: sans-serif; padding: 20px; }
   h1 { color: #333; }
-  .items-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
   .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
   .items-table th { background-color: #f2f2f2; }
   .items-table tr:nth-child(even) { background-color: #f9f9f9; }
   .items-table tr:hover { background-color: #f1f1f1; }
+  .status-found { color: green; font-weight: bold; }
+
+  /* --- ESTILOS DE BOTÕES UNIFICADOS (ATUALIZADO) --- */
   .btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px; /* Bordas mais arredondadas */
     color: white;
     cursor: pointer;
     text-decoration: none;
+    font-size: 14px; /* Tamanho de fonte consistente */
+    font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s; /* Transição suave */
+    display: inline-block; /* Garante alinhamento e padding corretos */
+    text-align: center;
   }
-  .btn-found { background-color: #28a745;}
-  .btn-not-found { background-color: #dc3545;}
-  .status-found { color: green; font-weight: bold; }
 
-  .btn-delete {
-    background-color: #dd534eff;
-    font-size: 12px;
+  .btn:hover {
+    filter: brightness(1.1); /* Efeito de brilho ao passar o mouse */
   }
-  .btn-delete:hover {
-    background-color: #685a5aff;
+
+  .btn:active {
+    transform: scale(0.98); /* Efeito de clique */
+  }
+
+  /* Variações de cor */
+  .btn-found { background-color: #28a745; } /* Verde para "Encontrado" */
+  .btn-not-found { background-color: #8f8f8fff; } /* Amarelo para "Não Encontrado" */
+  .btn-add { background-color: #007bff; } /* Azul para "Adicionar" */
+  .btn-delete { background-color: #dc3545; } /* Vermelho para "Excluir" */
+
+  /* Ajuste para o botão de excluir ser mais compacto se preferir */
+  .btn-delete {
+    padding: 8px 12px; /* Menos padding lateral para ícone */
+  }
+
+  /* --- FIM DOS ESTILOS DE BOTÕES --- */
+
+
+  /* Estilos para grupos recolhíveis (mantidos) */
+  .group-header {
+    background-color: #e0e0e0; padding: 12px; margin-top: 20px; cursor: pointer;
+    border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
+    align-items: center; user-select: none;
+  }
+  .group-header.category-header { background-color: #333; color: white; }
+  .group-header.rarity-header { background-color: #f0f0f0; margin-top: 10px; margin-left: 20px; }
+  .group-header .toggle-icon::before {
+    content: '▼'; display: inline-block; transition: transform 0.2s;
+  }
+  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
+  .items-container {
+    padding-left: 20px; overflow: hidden; transition: max-height 0.3s ease-out;
+  }
+  .items-container.collapsed { max-height: 0 !important; padding-top: 0; padding-bottom: 0; margin-top: 0; }
+
+  /* Estilos para o filtro de busca (mantidos) */
+  .search-container { margin: 20px 0; }
+  .search-input {
+    width: 100%; padding: 12px; font-size: 16px; border-radius: 5px;
+    border: 1px solid #ccc; box-sizing: border-box;
   }
 </style>
 
+
 <h1>Checklist de Itens - Fallout</h1>
-
-<div class="header-actions">
-  <%= link_to "Adicionar Novo Item", new_item_path, class: "btn-add" %>
-</div>
-
 <p>Bem-vindo, <%= current_user.email %>!</p>
 
-<table class="items-table">
-  <thead>
-    <tr>
-      <th></th>
-      <th>Nome</th>
-      <th></th>
-      <th></th>
-      <th>Ação</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @items.each do |item| %>
-      <tr>
-        <td>
-          <% if @found_item_ids.include?(item.id) %>
-            <span class="status-found">✅</span>
-            <% else %>
-            <span class="status-not-found">🚫</span>
-          <% end %>
-        </td>
-        <td><%= item.name %></td>
-        <td><%= item.category %></td>
-        <td><%= item.rarity %></td>
-        <td>
-          <% is_found = @found_item_ids.include?(item.id) %>
-          <%= form_with(url: toggle_found_item_path(item), method: :post) do %>
-            <button type="submit" class="btn <%= is_found ? 'btn-not-found' : 'btn-found' %>">
-              <%= is_found ? '👎' : '👍' %>
-            </button>
-          <% end %>
-        </td>
-        <td>
-        <!-- NOVO BOTÃO DE REMOVER -->
-        <%= button_to "🗑️", item_path(item),
-                method: :delete,
-                class: "btn-delete",
-                data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } %>
-        </td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<!-- Ação do Cabeçalho -->
+<div class="header-actions">
+  <%# ATUALIZADO: Adicionada a classe "btn" para o estilo base %>
+  <%= link_to "Adicionar Novo Item", new_item_path, class: "btn btn-add" %>
+</div>
+
+<!-- Estrutura de Itens Agrupados (sem alterações aqui) -->
+<% @items.group_by(&:category).each do |category, items_by_category| %>
+  <div class="group-wrapper" data-category-name="<%= category.downcase %>">
+    <div class="group-header category-header collapsible">
+      <span><%= category %> (<%= items_by_category.count %>)</span>
+      <span class="toggle-icon"></span>
+    </div>
+    <div class="items-container">
+      <% items_by_category.group_by(&:rarity).each do |rarity, items_by_rarity| %>
+        <div class="group-wrapper" data-rarity-name="<%= rarity.downcase %>">
+          <div class="group-header rarity-header collapsible">
+            <span><%= rarity %> (<%= items_by_rarity.count %>)</span>
+            <span class="toggle-icon"></span>
+          </div>
+          <div class="items-container">
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th style="width: 5%;"></th>
+                  <th>Nome</th>
+                  <th style="width: 10%;">Ação</th>
+                  <th style="width: 10%;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% items_by_rarity.each do |item| %>
+                  <tr data-item-name="<%= item.name.downcase %>">
+                    <td>
+                      <% if @found_item_ids.include?(item.id) %>
+                        <span class="status-found">✅</span>
+                      <% else %>
+                        <span class="status-not-found">🚫</span>
+                      <% end %>
+                    </td>
+                    <td><%= item.name %></td>
+                    <td>
+                      <% is_found = @found_item_ids.include?(item.id) %>
+                      <%= form_with(url: toggle_found_item_path(item), method: :post, data: { "turbo-frame": "_top" }) do %>
+                        <%# ATUALIZADO: Adicionada a classe "btn" %>
+                        <button type="submit" class="btn <%= is_found ? 'btn-not-found' : 'btn-found' %>">
+                          <%= is_found ? 'X' : 'X' %>
+                        </button>
+                      <% end %>
+                    </td>
+                    <td>
+                      <%# ATUALIZADO: Adicionada a classe "btn" para o estilo base %>
+                      <%= button_to "🗑️", item_path(item),
+                              method: :delete,
+                              class: "btn btn-delete",
+                              data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<!-- SCRIPT ATUALIZADO -->
+<script>
+  document.addEventListener('turbo:load', function() {
+    // --- LÓGICA PARA RECOLHER/EXPANDIR ---
+    const collapsibleHeaders = document.querySelectorAll('.collapsible');
+    collapsibleHeaders.forEach(header => {
+      const container = header.nextElementSibling;
+      // Inicia expandido por padrão
+      if (!container.classList.contains('collapsed')) {
+        container.style.maxHeight = container.scrollHeight + "px";
+      }
+
+      header.addEventListener('click', function() {
+        this.classList.toggle('collapsed');
+        const content = this.nextElementSibling;
+        content.classList.toggle('collapsed');
+
+        if (content.style.maxHeight) {
+          content.style.maxHeight = null;
+        } else {
+          content.style.maxHeight = content.scrollHeight + "px";
+        }
+      });
+    });
+
+    // --- LÓGICA PARA O FILTRO DE BUSCA ---
+    const searchInput = document.getElementById('itemSearch');
+    if (searchInput) {
+      searchInput.addEventListener('keyup', function() {
+        const filter = searchInput.value.toLowerCase();
+        
+        document.querySelectorAll('[data-item-name]').forEach(row => {
+          const itemName = row.getAttribute('data-item-name');
+          if (itemName.includes(filter)) {
+            row.style.display = ''; // Mostra a linha
+          } else {
+            row.style.display = 'none'; // Esconde a linha
+          }
+        });
+
+        // Atualiza a visibilidade dos cabeçalhos de grupo
+        document.querySelectorAll('.group-wrapper').forEach(wrapper => {
+          const visibleItems = wrapper.querySelectorAll('tr[style*="display: ;"]');
+          if (visibleItems.length > 0) {
+            wrapper.style.display = ''; // Mostra o grupo
+          } else {
+            wrapper.style.display = 'none'; // Esconde o grupo
+          }
+        });
+      });
+    }
+  });
+</script>
