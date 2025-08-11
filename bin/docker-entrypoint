@@ -5,11 +5,9 @@ set -e
 rm -f /rails/tmp/pids/server.pid
 
 # Executa as migrações do banco de dados.
-# O Rails é inteligente o suficiente para não rodar migrações que já foram aplicadas.
+echo "Running database migrations..."
 bundle exec rails db:migrate
 
-# Então, executa o comando principal do contêiner (que será `bin/rails server`).
-# O "$@" passa todos os argumentos originais para o script.
-exec bundle exec rails server
-
-
+# Então, executa o comando principal do contêiner para iniciar o servidor.
+echo "Starting Rails server..."
+exec bundle exec rails server -b 0.0.0.0
