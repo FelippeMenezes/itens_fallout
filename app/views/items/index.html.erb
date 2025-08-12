@@ -1,5 +1,4 @@
 <style>
-  /* Estilos gerais (mantidos) */
   body { font-family: sans-serif; padding: 20px; }
   h1 { color: #333; }
   .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -11,44 +10,28 @@
   .row-missing { background-color: #fff7b3ff !important; }
   .status-found { color: green; font-weight: bold; }
 
-  /* --- ESTILOS DE BOTÕES UNIFICADOS (ATUALIZADO) --- */
   .btn {
     padding: 8px 16px;
     border: none;
-    border-radius: 5px; /* Bordas mais arredondadas */
+    border-radius: 5px;
     color: white;
     cursor: pointer;
     text-decoration: none;
-    font-size: 14px; /* Tamanho de fonte consistente */
+    font-size: 14px;
     font-weight: bold;
-    transition: background-color 0.2s, transform 0.1s; /* Transição suave */
-    display: inline-block; /* Garante alinhamento e padding corretos */
+    transition: background-color 0.2s, transform 0.1s;
+    display: inline-block;
     text-align: center;
   }
 
-  .btn:hover {
-    filter: brightness(1.1); /* Efeito de brilho ao passar o mouse */
-  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:active { transform: scale(0.98); }
 
-  .btn:active {
-    transform: scale(0.98); /* Efeito de clique */
-  }
+  .btn-found { background-color: #28a745; }
+  .btn-not-found { background-color: #8f8f8fff; }
+  .btn-add { background-color: #007bff; }
+  .btn-delete { background-color: #dc3545; padding: 8px 12px; }
 
-  /* Variações de cor */
-  .btn-found { background-color: #28a745; } /* Verde para "Encontrado" */
-  .btn-not-found { background-color: #8f8f8fff; } /* Amarelo para "Não Encontrado" */
-  .btn-add { background-color: #007bff; } /* Azul para "Adicionar" */
-  .btn-delete { background-color: #dc3545; } /* Vermelho para "Excluir" */
-
-  /* Ajuste para o botão de excluir ser mais compacto se preferir */
-  .btn-delete {
-    padding: 8px 12px; /* Menos padding lateral para ícone */
-  }
-
-  /* --- FIM DOS ESTILOS DE BOTÕES --- */
-
-
-  /* Estilos para grupos recolhíveis (mantidos) */
   .group-header {
     background-color: #e0e0e0; padding: 12px; margin-top: 20px; cursor: pointer;
     border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
@@ -64,52 +47,15 @@
     padding-left: 20px; overflow: hidden; transition: max-height 0.3s ease-out;
   }
   .items-container.collapsed { max-height: 0 !important; padding-top: 0; padding-bottom: 0; margin-top: 0; }
-
-  /* Estilos para o filtro de busca (mantidos) */
-  .search-container { margin: 20px 0; }
-  .search-input {
-    width: 100%; padding: 12px; font-size: 16px; border-radius: 5px;
-    border: 1px solid #ccc; box-sizing: border-box;
-  }
-
-  @media (max-width: 600px) {
-  /* Faz com que a tabela ocupe a largura total, mas permite scroll horizontal se necessário */
-  .items-table {
-    display: block; /* Muda o comportamento da tabela */
-    overflow-x: auto; /* Adiciona scroll horizontal APENAS se o conteúdo não couber */
-    white-space: nowrap; /* Evita que os botões quebrem linha de forma estranha */
-  }
-
-  /* Garante que as células não tentem espremer demais o conteúdo */
-  .items-table td, .items-table th {
-    padding: 8px 10px; /* Reduz um pouco o padding em ecrãs pequenos */
-  }
-
-  /* Ajusta o tamanho da fonte para melhor leitura */
-  .btn {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-
-  /* Remove a largura fixa das colunas de ação para que se ajustem ao conteúdo */
-  .items-table th[style*="width: 10%"],
-  .items-table td {
-    width: auto !important; /* Permite que o browser calcule a largura necessária */
-  }
-}
 </style>
-
 
 <h1>Checklist de Itens - Fallout</h1>
 <p>Bem-vindo, <%= current_user.email %>!</p>
 
-<!-- Ação do Cabeçalho -->
 <div class="header-actions">
-  <%# ATUALIZADO: Adicionada a classe "btn" para o estilo base %>
   <%= link_to "Adicionar Novo Item", new_item_path, class: "btn btn-add" %>
 </div>
 
-<!-- Estrutura de Itens Agrupados (sem alterações aqui) -->
 <% @items.group_by(&:category).each do |category, items_by_category| %>
   <div class="group-wrapper" data-category-name="<%= category.downcase %>">
     <div class="group-header category-header collapsible">
@@ -134,7 +80,6 @@
               </thead>
               <tbody>
                 <% items_by_rarity.each do |item| %>
-                  <%# ATUALIZAÇÃO AQUI: Adiciona a classe dinâmica ao <tr> %>
                   <% is_found = @found_item_ids.include?(item.id) %>
                   <tr id="item-row-<%= item.id %>" data-item-name="<%= item.name.downcase %>" class="<%= is_found ? 'row-found' : 'row-missing' %>">
                     <td><%= item.name %></td>
@@ -163,72 +108,57 @@
 <% end %>
 
 <script>
-  // ==========================================================================
-  // FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL
-  // Esta função contém toda a lógica que precisa de ser executada
-  // sempre que a página é carregada ou renderizada.
-  // ==========================================================================
 function initializePage() {
-  // --- LÓGICA PARA MANTER A POSIÇÃO DO SCROLL (O seu código aqui está bom) ---
   const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
   if (scrolledItemId) {
-    const elementToScrollTo = document.getElementById(scrolledItemId);
-    if (elementToScrollTo) {
-      elementToScrollTo.scrollIntoView({ behavior: 'instant', block: 'center' });
-    }
-    sessionStorage.removeItem('scroll-to-item-id');
+    setTimeout(() => {
+      const elementToScrollTo = document.getElementById(scrolledItemId);
+      if (elementToScrollTo) {
+        elementToScrollTo.scrollIntoView({ behavior: 'auto', block: 'center' });
+      }
+      sessionStorage.removeItem('scroll-to-item-id');
+    }, 120);
   }
 
-  // --- LÓGICA PARA RECOLHER/EXPANDIR (ACORDEÃO) - VERSÃO ROBUSTA ---
   document.querySelectorAll('.collapsible').forEach(header => {
-    // Se o listener já foi adicionado, não faz nada.
-    if (header.dataset.listenerAttached === 'true') {
-      return;
-    }
+    if (header.dataset.listenerAttached === 'true') return;
     header.dataset.listenerAttached = 'true';
 
     const container = header.nextElementSibling;
+    container.style.maxHeight = container.scrollHeight + "px";
 
-    // Garante que o estado visual corresponde ao estado lógico no carregamento
-    if (container.classList.contains('collapsed')) {
-      container.style.maxHeight = null; // Garante que está fechado
-    } else {
-      // Define a altura inicial corretamente
-      container.style.maxHeight = container.scrollHeight + "px";
-    }
-
-    // O evento 'click' é mais compatível em dispositivos móveis que 'mousedown'
     header.addEventListener('click', function() {
-      // Alterna as classes de estado
+      const scrollPos = window.scrollY;
+
       this.classList.toggle('collapsed');
       const content = this.nextElementSibling;
       content.classList.toggle('collapsed');
 
-      // A lógica de animação:
-      // Se já tem um maxHeight (está aberto), fecha-o (define como null).
-      // Se não tem (está fechado), abre-o (define para a sua altura de scroll).
       if (content.style.maxHeight) {
         content.style.maxHeight = null;
       } else {
         content.style.maxHeight = content.scrollHeight + "px";
       }
+
+      window.scrollTo(0, scrollPos);
     });
   });
 }
 
-// ==========================================================================
-// EVENT LISTENERS DO TURBO (O seu código aqui está correto)
-// ==========================================================================
 document.addEventListener('turbo:load', initializePage);
 document.addEventListener('turbo:render', initializePage);
 
 document.addEventListener('turbo:submit-start', function(event) {
   const form = event.target;
   const row = form.closest('tr');
-  if (row && row.id) {
+  if (row && row.id && typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem('scroll-to-item-id', row.id);
   }
 });
 
+window.addEventListener('focusout', () => {
+  setTimeout(() => {
+    window.scrollTo(0, window.scrollY);
+  }, 50);
+});
 </script>
-
