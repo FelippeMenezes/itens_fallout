@@ -10,14 +10,26 @@
 <% @items.group_by(&:category).each do |category, items_by_category| %>
   <div class="group-wrapper" data-category-name="<%= category.downcase %>">
     <div class="group-header category-header collapsible">
-      <span><%= category %> (<%= items_by_category.count %>)</span>
+      <% not_found_in_category = items_by_category.count { |item| !@found_item_ids.include?(item.id) } %>
+      <span>
+        <%= category %> <%= items_by_category.count %> de
+        <% if not_found_in_category > 0 %>
+          <span class="not-found-count colorred"><%= not_found_in_category %></span>
+        <% end %>
+      </span>
       <span class="toggle-icon"></span>
     </div>
     <div class="items-container">
       <% items_by_category.group_by(&:rarity).each do |rarity, items_by_rarity| %>
         <div class="group-wrapper" data-rarity-name="<%= rarity.downcase %>">
           <div class="group-header rarity-header collapsible">
-            <span><%= rarity %> (<%= items_by_rarity.count %>)</span>
+            <% not_found_in_rarity = items_by_rarity.count { |item| !@found_item_ids.include?(item.id) } %>
+            <span>
+              <%= rarity %> <%= items_by_rarity.count %> de
+              <% if not_found_in_rarity > 0 %>
+                <span class="not-found-count colorred"><%= not_found_in_rarity %></span>
+              <% end %>
+            </span>
             <span class="toggle-icon"></span>
           </div>
           <div class="items-container">
@@ -59,7 +71,6 @@
 <% end %>
 
 <style>
-  /* Suas estilizações de corpo, tabela e botões permanecem as mesmas */
   body { font-family: sans-serif; padding: 20px; }
   h1 { color: #333; }
   .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
@@ -90,14 +101,12 @@
     border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
     align-items: center; user-select: none;
   }
+
   .group-header .toggle-icon::before {
     content: '▼'; display: inline-block; transition: transform 0.2s;
   }
-  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
 
-  /* ================================================= */
-  /* ========= INÍCIO DAS CORREÇÕES DE ESTILO ========= */
-  /* ================================================= */
+  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
 
   .group-header.category-header {
     position: sticky;
@@ -109,21 +118,18 @@
 
   .group-header.rarity-header {
     position: sticky;
-    top: 54px; /* Altura do cabeçalho da categoria (ajuste conforme necessário) */
+    top: 54px;
     z-index: 10;
     background-color: #f0f0f0;
   }
 
   .items-container {
-    /* Por padrão, o overflow é VISÍVEL. Isso permite que os cabeçalhos de raridade fiquem fixos. */
     overflow: visible;
     padding-left: 20px;
     transition: max-height 0.3s ease-out;
   }
 
   .items-container.collapsed {
-    /* A classe 'collapsed' adiciona overflow:hidden e zera a altura,
-       garantindo que a animação de recolher funcione perfeitamente. */
     max-height: 0 !important;
     overflow: hidden;
     padding-top: 0;
@@ -131,9 +137,9 @@
     margin-top: 0;
   }
 
-  /* =============================================== */
-  /* ========= FIM DAS CORREÇÕES DE ESTILO ========= */
-  /* =============================================== */
+  .colorred {
+    color: #ff4949ff;
+  }
 </style>
 
 <script>
