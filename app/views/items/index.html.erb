@@ -1,67 +1,4 @@
-<style>
-  body { font-family: sans-serif; padding: 20px; }
-  h1 { color: #333; }
-  .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-  .items-table th { background-color: #f2f2f2; }
-  .items-table tr:nth-child(even) { background-color: #f9f9f9; }
-  .items-table tr:hover { background-color: #f1f1f1; }
-  .row-found { background-color: #e5ffedff !important; }
-  .row-missing { background-color: #fff7b3ff !important; }
-  .status-found { color: green; font-weight: bold; }
-
-  .btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: bold;
-    transition: background-color 0.2s, transform 0.1s;
-    display: inline-block;
-    text-align: center;
-  }
-
-  .btn:hover { filter: brightness(1.1); }
-  .btn:active { transform: scale(0.98); }
-
-  .btn-found { background-color: #28a745; }
-  .btn-not-found { background-color: #8f8f8fff; }
-  .btn-add { background-color: #007bff; }
-  .btn-delete { background-color: #dc3545; padding: 8px 12px; }
-
-  .group-header {
-    background-color: #e0e0e0; padding: 12px; margin-top: 20px; cursor: pointer;
-    border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
-    align-items: center; user-select: none;
-  }
-  .group-header.category-header { background-color: #333; color: white; }
-  .group-header.rarity-header { background-color: #f0f0f0; margin-top: 10px; margin-left: 20px; }
-  .group-header .toggle-icon::before {
-    content: '▼'; display: inline-block; transition: transform 0.2s;
-  }
-  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
-  .items-container {
-    padding-left: 20px; overflow: hidden; transition: max-height 0.3s ease-out;
-  }
-  .items-container.collapsed { max-height: 0 !important; padding-top: 0; padding-bottom: 0; margin-top: 0; }
-    /* Cabeçalho fixo de Categoria */
-  .group-header.category-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-  }
-
-  /* Cabeçalho fixo de Raridade */
-  .group-header.rarity-header {
-    position: sticky;
-    top: 42px; /* altura do cabeçalho da categoria */
-    z-index: 10;
-  }
-  </style>
-
+<!-- O cabeçalho do seu arquivo permanece o mesmo -->
 <h1>Checklist de Itens - Fallout</h1>
 <p>Bem-vindo, <%= current_user.email %>!</p>
 
@@ -69,6 +6,7 @@
   <%= link_to "Adicionar Novo Item", new_item_path, class: "btn btn-add" %>
 </div>
 
+<!-- O restante do seu HTML ERB permanece o mesmo -->
 <% @items.group_by(&:category).each do |category, items_by_category| %>
   <div class="group-wrapper" data-category-name="<%= category.downcase %>">
     <div class="group-header category-header collapsible">
@@ -120,15 +58,90 @@
   </div>
 <% end %>
 
+<style>
+  /* Suas estilizações de corpo, tabela e botões permanecem as mesmas */
+  body { font-family: sans-serif; padding: 20px; }
+  h1 { color: #333; }
+  .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+  .items-table th { background-color: #f2f2f2; }
+  .items-table tr:nth-child(even) { background-color: #f9f9f9; }
+  .items-table tr:hover { background-color: #f1f1f1; }
+  .row-found { background-color: #e5ffedff !important; }
+  .row-missing { background-color: #fff7b3ff !important; }
+  .status-found { color: green; font-weight: bold; }
+
+  .btn {
+    padding: 8px 16px; border: none; border-radius: 5px; color: white;
+    cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold;
+    transition: background-color 0.2s, transform 0.1s; display: inline-block; text-align: center;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn:active { transform: scale(0.98); }
+  .btn-found { background-color: #28a745; }
+  .btn-not-found { background-color: #8f8f8fff; }
+  .btn-add { background-color: #007bff; }
+  .btn-delete { background-color: #dc3545; padding: 8px 12px; }
+
+  .group-header {
+    background-color: #e0e0e0; padding: 12px; margin-top: 20px; cursor: pointer;
+    border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
+    align-items: center; user-select: none;
+  }
+  .group-header .toggle-icon::before {
+    content: '▼'; display: inline-block; transition: transform 0.2s;
+  }
+  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
+
+  /* ================================================= */
+  /* ========= INÍCIO DAS CORREÇÕES DE ESTILO ========= */
+  /* ================================================= */
+
+  .group-header.category-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: #333;
+    color: white;
+  }
+
+  .group-header.rarity-header {
+    position: sticky;
+    top: 54px; /* Altura do cabeçalho da categoria (ajuste conforme necessário) */
+    z-index: 10;
+    background-color: #f0f0f0;
+  }
+
+  .items-container {
+    /* Por padrão, o overflow é VISÍVEL. Isso permite que os cabeçalhos de raridade fiquem fixos. */
+    overflow: visible;
+    padding-left: 20px;
+    transition: max-height 0.3s ease-out;
+  }
+
+  .items-container.collapsed {
+    /* A classe 'collapsed' adiciona overflow:hidden e zera a altura,
+       garantindo que a animação de recolher funcione perfeitamente. */
+    max-height: 0 !important;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+
+  /* =============================================== */
+  /* ========= FIM DAS CORREÇÕES DE ESTILO ========= */
+  /* =============================================== */
+</style>
+
 <script>
 (function() {
-  // Detecta se é iOS (iPhone, iPad, iPod)
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   function restoreScrollPosition() {
     const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
     if (scrolledItemId) {
-      const delay = isIOS ? 250 : 80; // iOS precisa de mais tempo
+      const delay = isIOS ? 100 : 50;
       setTimeout(() => {
         const elementToScrollTo = document.getElementById(scrolledItemId);
         if (elementToScrollTo) {
@@ -145,52 +158,61 @@
       header.dataset.listenerAttached = 'true';
 
       const container = header.nextElementSibling;
-      container.style.maxHeight = container.scrollHeight + "px";
+
+      // Define o estado inicial baseado na classe 'collapsed' no HTML
+      if (header.classList.contains('collapsed')) {
+        container.style.maxHeight = '0px';
+      } else {
+        // Define a altura correta para o conteúdo visível
+        container.style.maxHeight = container.scrollHeight + "px";
+      }
 
       header.addEventListener('click', function() {
-        const scrollPos = window.scrollY; // salva posição antes de expandir/contrair
-
-        this.classList.toggle('collapsed');
+        // Aplica/remove a classe CSS que controla o estado
+        const isCollapsed = this.classList.toggle('collapsed');
         const content = this.nextElementSibling;
-        content.classList.toggle('collapsed');
+        content.classList.toggle('collapsed', isCollapsed);
 
-        if (content.style.maxHeight) {
-          content.style.maxHeight = null;
+        if (isCollapsed) {
+          // Recolhendo: Anima a altura para 0
+          content.style.maxHeight = '0px';
         } else {
+          // Expandindo: Anima para a altura total do conteúdo
           content.style.maxHeight = content.scrollHeight + "px";
         }
 
-        window.scrollTo(0, scrollPos); // evita "pulo" no iPhone
+        // Se uma seção de raridade for expandida/recolhida, recalcula a altura da categoria pai
+        // Isso evita que a categoria fique com um espaço vazio ou corte o conteúdo.
+        setTimeout(() => {
+          const parentContainer = header.closest('.items-container:not(.collapsed)');
+          if (parentContainer) {
+            parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
+          }
+        }, 300); // O delay deve ser igual à duração da transição CSS
       });
     });
   }
 
   function initializePage() {
-    restoreScrollPosition();
     setupCollapsibles();
+    restoreScrollPosition();
   }
 
-  // Eventos para Web + Safari iOS
   document.addEventListener('turbo:load', initializePage);
   document.addEventListener('turbo:render', initializePage);
-  document.addEventListener('DOMContentLoaded', initializePage);
-  window.addEventListener('pageshow', initializePage);
 
-  // Salva ID do item antes de enviar form
-  document.addEventListener('turbo:submit-start', function(event) {
+  // Listener robusto para salvar a posição do scroll antes do envio
+  document.addEventListener('submit', function(event) {
     const form = event.target;
     const row = form.closest('tr');
     if (row && row.id && typeof sessionStorage !== 'undefined') {
       sessionStorage.setItem('scroll-to-item-id', row.id);
     }
-  });
+  }, true);
 
-  // Corrige reposicionamento quando o teclado do iOS fecha
   if (isIOS) {
     window.addEventListener('focusout', () => {
-      setTimeout(() => {
-        window.scrollTo(0, window.scrollY);
-      }, 50);
+      setTimeout(() => { window.scrollTo(0, window.scrollY); }, 50);
     });
   }
 })();
