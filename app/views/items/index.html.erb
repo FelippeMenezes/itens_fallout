@@ -1,20 +1,18 @@
-<!-- O cabeçalho do seu arquivo permanece o mesmo -->
-<h1>Checklist de Itens - Fallout</h1>
+<h1>Checklist de Itens</h1>
 <p>Bem-vindo, <%= current_user.email %>!</p>
 
 <div class="header-actions">
   <%= link_to "Adicionar Novo Item", new_item_path, class: "btn btn-add" %>
 </div>
 
-<!-- O restante do seu HTML ERB permanece o mesmo -->
 <% @items.group_by(&:category).each do |category, items_by_category| %>
   <div class="group-wrapper" data-category-name="<%= category.downcase %>">
     <div class="group-header category-header collapsible">
       <% not_found_in_category = items_by_category.count { |item| !@found_item_ids.include?(item.id) } %>
       <span>
-        <%= category %> <%= items_by_category.count %> de
+        <%= category %> <%= items_by_category.count %>
         <% if not_found_in_category > 0 %>
-          <span class="not-found-count colorred"><%= not_found_in_category %></span>
+          <span class="not-found-count colorred">(<%= not_found_in_category %>)</span>
         <% end %>
       </span>
       <span class="toggle-icon"></span>
@@ -25,9 +23,9 @@
           <div class="group-header rarity-header collapsible">
             <% not_found_in_rarity = items_by_rarity.count { |item| !@found_item_ids.include?(item.id) } %>
             <span>
-              <%= rarity %> <%= items_by_rarity.count %> de
+              <%= rarity %> <%= items_by_rarity.count %>
               <% if not_found_in_rarity > 0 %>
-                <span class="not-found-count colorred"><%= not_found_in_rarity %></span>
+                <span class="not-found-count colorred">(<%= not_found_in_rarity %>)</span>
               <% end %>
             </span>
             <span class="toggle-icon"></span>
@@ -36,8 +34,8 @@
             <table class="items-table">
               <thead>
                 <tr>
-                  <th>Nome</th>
-                  <th style="width: 10%;">Ação</th>
+                  <th>Item</th>
+                  <th style="width: 10%;"></th>
                   <th style="width: 10%;"></th>
                 </tr>
               </thead>
@@ -47,17 +45,24 @@
                   <tr id="item-row-<%= item.id %>" data-item-name="<%= item.name.downcase %>" class="<%= is_found ? 'row-found' : 'row-missing' %>">
                     <td><%= item.name %></td>
                     <td>
-                      <%= form_with(url: toggle_found_item_path(item), method: :post) do %>
+                      <%= form_with(url: toggle_found_item_path(item), method: :post, local: true) do %>
                         <button type="submit" class="btn <%= is_found ? 'btn-not-found' : 'btn-found' %>">
-                          <%= is_found ? 'X' : '✔' %>
+                          <%# Usamos image_tag aqui, com a URL mudando com base na variável is_found %>
+                          <%= image_tag(
+                                is_found ? 'https://img.icons8.com/external-others-inmotus-design/67/FFFFFF/external-Cancel-basic-elements-others-inmotus-design.png' : 'https://img.icons8.com/ios-filled/50/FFFFFF/instagram-check-mark.png',
+                                alt: is_found ? "Marcar como não encontrado" : "Marcar como encontrado",
+                                width: "24"
+                              ) %>
                         </button>
                       <% end %>
                     </td>
                     <td>
-                      <%= button_to "🗑️", item_path(item),
+                      <%= button_to item_path(item),
                               method: :delete,
                               class: "btn btn-delete",
-                              data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } %>
+                              data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } do %>
+                          <%= image_tag "https://img.icons8.com/comic/200/FFFFFF/delete.png", alt: "Remover Item", width: "24" %>
+                      <% end %>
                     </td>
                   </tr>
                 <% end %>
@@ -69,78 +74,6 @@
     </div>
   </div>
 <% end %>
-
-<style>
-  body { font-family: sans-serif; padding: 20px; }
-  h1 { color: #333; }
-  .items-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-  .items-table th, .items-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-  .items-table th { background-color: #f2f2f2; }
-  .items-table tr:nth-child(even) { background-color: #f9f9f9; }
-  .items-table tr:hover { background-color: #f1f1f1; }
-  .row-found { background-color: #fafafaff !important; }
-  .row-found { color: #8f8f8fff !important; }
-  .row-missing { background-color: #ceebffff !important; }
-  .row-missing { color: #003688ff !important; }
-  .status-found { color: green; font-weight: bold; }
-
-  .btn {
-    padding: 8px 16px; border: none; border-radius: 5px; color: white;
-    cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold;
-    transition: background-color 0.2s, transform 0.1s; display: inline-block; text-align: center;
-  }
-  .btn:hover { filter: brightness(1.1); }
-  .btn:active { transform: scale(0.98); }
-  .btn-found { background-color: #28a745; }
-  .btn-not-found { background-color: #8f8f8fff; }
-  .btn-add { background-color: #007bff; }
-  .btn-delete { background-color: #dc3545; padding: 8px 12px; }
-
-  .group-header {
-    background-color: #e0e0e0; padding: 12px; margin-top: 20px; cursor: pointer;
-    border-radius: 5px; font-weight: bold; display: flex; justify-content: space-between;
-    align-items: center; user-select: none;
-  }
-
-  .group-header .toggle-icon::before {
-    content: '▼'; display: inline-block; transition: transform 0.2s;
-  }
-
-  .group-header.collapsed .toggle-icon::before { transform: rotate(-90deg); }
-
-  .group-header.category-header {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    background-color: #333;
-    color: white;
-  }
-
-  .group-header.rarity-header {
-    position: sticky;
-    top: 54px;
-    z-index: 10;
-    background-color: #f0f0f0;
-  }
-
-  .items-container {
-    overflow: visible;
-    padding-left: 20px;
-    transition: max-height 0.3s ease-out;
-  }
-
-  .items-container.collapsed {
-    max-height: 0 !important;
-    overflow: hidden;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-top: 0;
-  }
-
-  .colorred {
-    color: #ff4949ff;
-  }
-</style>
 
 <script>
 (function() {
@@ -167,36 +100,29 @@
 
       const container = header.nextElementSibling;
 
-      // Define o estado inicial baseado na classe 'collapsed' no HTML
       if (header.classList.contains('collapsed')) {
         container.style.maxHeight = '0px';
       } else {
-        // Define a altura correta para o conteúdo visível
         container.style.maxHeight = container.scrollHeight + "px";
       }
 
       header.addEventListener('click', function() {
-        // Aplica/remove a classe CSS que controla o estado
         const isCollapsed = this.classList.toggle('collapsed');
         const content = this.nextElementSibling;
         content.classList.toggle('collapsed', isCollapsed);
 
         if (isCollapsed) {
-          // Recolhendo: Anima a altura para 0
           content.style.maxHeight = '0px';
         } else {
-          // Expandindo: Anima para a altura total do conteúdo
           content.style.maxHeight = content.scrollHeight + "px";
         }
 
-        // Se uma seção de raridade for expandida/recolhida, recalcula a altura da categoria pai
-        // Isso evita que a categoria fique com um espaço vazio ou corte o conteúdo.
         setTimeout(() => {
           const parentContainer = header.closest('.items-container:not(.collapsed)');
           if (parentContainer) {
             parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
           }
-        }, 300); // O delay deve ser igual à duração da transição CSS
+        }, 300);
       });
     });
   }

@@ -6,3 +6,8 @@
 @import "config/fonts";
 @import "components/index";
 @import "pages/index";
+@import "pages/new";
+
+body {
+    background-color: rgb(221, 241, 255);
+}
