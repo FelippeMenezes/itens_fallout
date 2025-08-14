@@ -14,7 +14,7 @@ p {
     }
 
 .items-table {
-    width: 100%;
+    width: 95%;
     border-collapse: collapse;
     margin-top: 10px;
     }
@@ -29,16 +29,22 @@ p {
     background-color: #47a0ff !important;
     color: white;
     border-radius: 5px !important;
+    width: 75%;
     }
 
 .items-table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: center;
+      word-break: break-word; /* quebra palavras grandes */
+  white-space: normal; /* permite quebra de linha */
+  width: 75%;
     }
 
 .items-table th {
     background-color: #f2f2f2;
+      word-break: break-word; /* quebra palavras grandes */
+  white-space: normal; /* permite quebra de linha */
     }
 
 .row-found {
