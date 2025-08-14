@@ -47,7 +47,6 @@
                     <td>
                       <%= form_with(url: toggle_found_item_path(item), method: :post, local: true) do %>
                         <button type="submit" class="btn <%= is_found ? 'btn-not-found' : 'btn-found' %>">
-                          <%# Usamos image_tag aqui, com a URL mudando com base na variável is_found %>
                           <%= image_tag(
                                 is_found ? 'https://img.icons8.com/external-others-inmotus-design/67/FFFFFF/external-Cancel-basic-elements-others-inmotus-design.png' : 'https://img.icons8.com/ios-filled/50/FFFFFF/instagram-check-mark.png',
                                 alt: is_found ? "Marcar como não encontrado" : "Marcar como encontrado",
@@ -57,11 +56,10 @@
                       <% end %>
                     </td>
                     <td>
-                      <%= button_to item_path(item),
-                              method: :delete,
-                              class: "btn btn-delete",
-                              data: { turbo_confirm: "Você tem certeza que deseja remover o item '#{item.name}'? Esta ação não pode ser desfeita." } do %>
+                      <%= form_with(url: item_path(item), method: :delete, local: true) do %>
+                        <button type="submit" class="btn btn-delete">
                           <%= image_tag "https://img.icons8.com/comic/200/FFFFFF/delete.png", alt: "Remover Item", width: "24" %>
+                        </button>
                       <% end %>
                     </td>
                   </tr>
@@ -82,14 +80,15 @@
   function restoreScrollPosition() {
     const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
     if (scrolledItemId) {
-      const delay = isIOS ? 100 : 50;
-      setTimeout(() => {
-        const elementToScrollTo = document.getElementById(scrolledItemId);
-        if (elementToScrollTo) {
-          elementToScrollTo.scrollIntoView({ behavior: 'auto', block: 'center' });
-        }
-        sessionStorage.removeItem('scroll-to-item-id');
-      }, delay);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          const element = document.getElementById(scrolledItemId);
+          if (element) {
+            element.scrollIntoView({ behavior: 'instant', block: 'center' });
+          }
+          sessionStorage.removeItem('scroll-to-item-id');
+        }, isIOS ? 300 : 100);
+      });
     }
   }
 
@@ -134,8 +133,9 @@
 
   document.addEventListener('turbo:load', initializePage);
   document.addEventListener('turbo:render', initializePage);
+  document.addEventListener('DOMContentLoaded', initializePage);
 
-  // Listener robusto para salvar a posição do scroll antes do envio
+  // Salvar posição antes de submit
   document.addEventListener('submit', function(event) {
     const form = event.target;
     const row = form.closest('tr');
