@@ -2,7 +2,7 @@
 <p class="text-center">Bem-vindo, <%= current_user.email %>!</p>
 
 <div class="header-actions">
-  <%= link_to "Add Item", new_item_path, class: "btn btn-add" %>
+  <%= link_to "Adicionar Item", new_item_path, class: "btn btn-add" %>
 </div>
 
 <% @items.group_by(&:category).each do |category, items_by_category| %>
