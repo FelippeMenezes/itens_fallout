@@ -20,13 +20,12 @@ p {
     }
 
 .items-table th {
-    position: -webkit-sticky;
     position: sticky;
     top: 97px;
     z-index: 20;
     border: 1px solid #ddd;
     padding: 12px;
-    text-align: left;
+    text-align: LE;
     background-color: #47a0ff !important;
     color: white;
     border-radius: 5px !important;
@@ -121,16 +120,14 @@ p {
 .group-header .toggle-icon::before {
     content: '▼';
         display: inline-block;
-        transition: -webkit-transform 0.2s, transform 0.2s;
+        transition: transform 0.2s;
     }
 
 .group-header.collapsed .toggle-icon::before {
-    -webkit-transform: rotate(-90deg);
     transform: rotate(-90deg);
     }
 
 .group-header.category-header {
-    position: -webkit-sticky;
     position: sticky;
     top: 0;
     z-index: 20;
@@ -139,7 +136,6 @@ p {
     }
 
 .group-header.rarity-header {
-    position: -webkit-sticky;
     position: sticky;
     top: 49px;
     z-index: 10;
