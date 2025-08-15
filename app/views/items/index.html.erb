@@ -43,7 +43,7 @@
                 <% items_by_rarity.each do |item| %>
                   <% is_found = @found_item_ids.include?(item.id) %>
                   <tr id="item-row-<%= item.id %>" data-item-name="<%= item.name.downcase %>" class="<%= is_found ? 'row-found' : 'row-missing' %>">
-                    <td><%= item.name == item.name.upcase ? item.name : item.name.titleize %></td>
+                    <td><%= item.name %></td>
                     <td>
                       <%= form_with(url: toggle_found_item_path(item), method: :post, local: true) do %>
                         <button type="submit" class="btn-action <%= is_found ? 'btn-not-found' : 'btn-found' %>">
