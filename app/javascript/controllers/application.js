@@ -60,7 +60,7 @@ export { application }
     });
   }
 
-  function setupSearchFilter() {
+    function setupSearchFilter() {
     const searchInput = document.getElementById('item-search-input');
     // Previne adicionar múltiplos listeners em re-renderizações do Turbo
     if (!searchInput || searchInput.dataset.searchAttached) {
@@ -78,13 +78,11 @@ export { application }
         row.style.display = isVisible ? '' : 'none';
       });
 
-      // Atualiza a visibilidade dos grupos de raridade
       document.querySelectorAll('.group-wrapper[data-rarity-name]').forEach(rarityGroup => {
         const visibleItems = rarityGroup.querySelectorAll('tr[data-item-name]:not([style*="display: none"])').length;
         const isVisible = searchTerm === '' || visibleItems > 0;
         rarityGroup.style.display = isVisible ? '' : 'none';
 
-        // Se o grupo está visível por causa da busca, expande ele
         if (isVisible && searchTerm !== '') {
             const header = rarityGroup.querySelector('.rarity-header');
             const container = header.nextElementSibling;
@@ -95,13 +93,11 @@ export { application }
         }
       });
 
-      // Atualiza a visibilidade dos grupos de categoria
       document.querySelectorAll('.group-wrapper[data-category-name]').forEach(categoryGroup => {
         const visibleRarities = categoryGroup.querySelectorAll('.group-wrapper[data-rarity-name]:not([style*="display: none"])').length;
         const isVisible = searchTerm === '' || visibleRarities > 0;
         categoryGroup.style.display = isVisible ? '' : 'none';
 
-        // Se o grupo está visível por causa da busca, expande ele
         if (isVisible && searchTerm !== '') {
             const header = categoryGroup.querySelector('.category-header');
             const container = header.nextElementSibling;
