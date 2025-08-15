@@ -11,3 +11,26 @@
 body {
     background-color: rgb(221, 241, 255);
 }
+
+.devise-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.devise-form {
+    background-color: #47a0ff;
+    color: white;
+    width: 275px;
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    padding: 1px;
+}
