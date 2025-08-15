@@ -2,14 +2,14 @@ import { Application } from "@hotwired/stimulus"
 
 const application = Application.start()
 
-// Configure Stimulus development experience
 application.debug = false
 window.Stimulus   = application
 
 export { application }
 
 (function() {
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+  const eventType = isTouchDevice ? 'touchstart' : 'click';
 
   function restoreScrollPosition() {
     const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
@@ -18,10 +18,10 @@ export { application }
         setTimeout(() => {
           const element = document.getElementById(scrolledItemId);
           if (element) {
-            element.scrollIntoView({ behavior: 'instant', block: 'center' });
+            element.scrollIntoView({ behavior: 'auto', block: 'center' });
           }
           sessionStorage.removeItem('scroll-to-item-id');
-        }, isIOS ? 300 : 100);
+        }, 150);
       });
     }
   }
@@ -39,7 +39,9 @@ export { application }
         container.style.maxHeight = container.scrollHeight + "px";
       }
 
-      header.addEventListener('click', function() {
+      header.addEventListener(eventType, function(event) {
+        event.preventDefault();
+
         const isCollapsed = this.classList.toggle('collapsed');
         const content = this.nextElementSibling;
         content.classList.toggle('collapsed', isCollapsed);
@@ -62,7 +64,6 @@ export { application }
 
   function setupSearchFilter() {
     const searchInput = document.getElementById('item-search-input');
-    // Previne adicionar múltiplos listeners em re-renderizações do Turbo
     if (!searchInput || searchInput.dataset.searchAttached) {
       return;
     }
@@ -71,7 +72,6 @@ export { application }
     searchInput.addEventListener('input', function() {
       const searchTerm = this.value.toLowerCase().trim();
 
-      // Filtra as linhas de itens individuais
       document.querySelectorAll('tr[data-item-name]').forEach(row => {
         const itemName = row.dataset.itemName.toLowerCase();
         const isVisible = searchTerm === '' || itemName.includes(searchTerm);
@@ -128,7 +128,7 @@ export { application }
     }
   }, true);
 
-  if (isIOS) {
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
     window.addEventListener('focusout', () => {
       setTimeout(() => { window.scrollTo(0, window.scrollY); }, 50);
     });
