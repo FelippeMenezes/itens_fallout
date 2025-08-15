@@ -10,8 +10,14 @@
 </div>
 
 <% @items.group_by(&:category).each do |category, items_by_category| %>
-  <div class="group-wrapper" data-category-name="<%= category.downcase %>">
-    <div class="group-header category-header collapsible">
+  <!-- Adicionado o controller Stimulus aqui -->
+  <div class="group-wrapper" 
+       data-controller="collapsible" 
+       data-action="toggled@window->collapsible#resize" 
+       data-category-name="<%= category.downcase %>">
+    
+    <!-- Adicionada a ação de clique aqui -->
+    <div class="group-header category-header collapsible" data-action="click->collapsible#toggle">
       <% not_found_in_category = items_by_category.count { |item| !@found_item_ids.include?(item.id) } %>
       <span>
         <%= category %> <%= items_by_category.count %>
@@ -21,10 +27,17 @@
       </span>
       <span class="toggle-icon"></span>
     </div>
-    <div class="items-container">
+
+    <!-- Adicionado o target do Stimulus aqui -->
+    <div class="items-container" data-collapsible-target="content">
       <% items_by_category.group_by(&:rarity).each do |rarity, items_by_rarity| %>
-        <div class="group-wrapper" data-rarity-name="<%= rarity.downcase %>">
-          <div class="group-header rarity-header collapsible">
+        <!-- Adicionado o controller Stimulus AQUI TAMBÉM para o aninhamento -->
+        <div class="group-wrapper" 
+             data-controller="collapsible" 
+             data-rarity-name="<%= rarity.downcase %>">
+          
+          <!-- Adicionada a ação de clique aqui -->
+          <div class="group-header rarity-header collapsible" data-action="click->collapsible#toggle">
             <% not_found_in_rarity = items_by_rarity.count { |item| !@found_item_ids.include?(item.id) } %>
             <span>
               <%= rarity %> <%= items_by_rarity.count %>
@@ -34,8 +47,11 @@
             </span>
             <span class="toggle-icon"></span>
           </div>
-          <div class="items-container">
+
+          <!-- Adicionado o target do Stimulus aqui -->
+          <div class="items-container" data-collapsible-target="content">
             <table class="items-table">
+              <!-- O conteúdo da tabela permanece o mesmo -->
               <thead>
                 <tr>
                   <th>Item</th>
