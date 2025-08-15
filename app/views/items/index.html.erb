@@ -5,6 +5,10 @@
   <%= link_to "Adicionar Item", new_item_path, class: "btn btn-add" %>
 </div>
 
+<div class="search-container">
+  <input type="text" id="item-search-input" placeholder="Buscar item por nome..." class="form-control">
+</div>
+
 <% @items.group_by(&:category).each do |category, items_by_category| %>
   <div class="group-wrapper" data-category-name="<%= category.downcase %>">
     <div class="group-header category-header collapsible">
@@ -126,9 +130,64 @@
     });
   }
 
+  function setupSearchFilter() {
+    const searchInput = document.getElementById('item-search-input');
+    // Previne adicionar múltiplos listeners em re-renderizações do Turbo
+    if (!searchInput || searchInput.dataset.searchAttached) {
+      return;
+    }
+    searchInput.dataset.searchAttached = 'true';
+
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase().trim();
+
+      // Filtra as linhas de itens individuais
+      document.querySelectorAll('tr[data-item-name]').forEach(row => {
+        const itemName = row.dataset.itemName.toLowerCase();
+        const isVisible = searchTerm === '' || itemName.includes(searchTerm);
+        row.style.display = isVisible ? '' : 'none';
+      });
+
+      // Atualiza a visibilidade dos grupos de raridade
+      document.querySelectorAll('.group-wrapper[data-rarity-name]').forEach(rarityGroup => {
+        const visibleItems = rarityGroup.querySelectorAll('tr[data-item-name]:not([style*="display: none"])').length;
+        const isVisible = searchTerm === '' || visibleItems > 0;
+        rarityGroup.style.display = isVisible ? '' : 'none';
+
+        // Se o grupo está visível por causa da busca, expande ele
+        if (isVisible && searchTerm !== '') {
+            const header = rarityGroup.querySelector('.rarity-header');
+            const container = header.nextElementSibling;
+            if (header.classList.contains('collapsed')) {
+                header.classList.remove('collapsed');
+                container.style.maxHeight = container.scrollHeight + "px";
+            }
+        }
+      });
+
+      // Atualiza a visibilidade dos grupos de categoria
+      document.querySelectorAll('.group-wrapper[data-category-name]').forEach(categoryGroup => {
+        const visibleRarities = categoryGroup.querySelectorAll('.group-wrapper[data-rarity-name]:not([style*="display: none"])').length;
+        const isVisible = searchTerm === '' || visibleRarities > 0;
+        categoryGroup.style.display = isVisible ? '' : 'none';
+
+        // Se o grupo está visível por causa da busca, expande ele
+        if (isVisible && searchTerm !== '') {
+            const header = categoryGroup.querySelector('.category-header');
+            const container = header.nextElementSibling;
+            if (header.classList.contains('collapsed')) {
+                header.classList.remove('collapsed');
+                container.style.maxHeight = container.scrollHeight + "px";
+            }
+        }
+      });
+    });
+  }
+
   function initializePage() {
     setupCollapsibles();
     restoreScrollPosition();
+    setupSearchFilter();
   }
 
   document.addEventListener('turbo:load', initializePage);
