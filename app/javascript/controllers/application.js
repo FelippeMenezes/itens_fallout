@@ -11,39 +11,33 @@ export { application }
 (function() {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  const isOldIOS = isIOS && /OS [1-9]/.test(navigator.userAgent); // iOS 9 or earlier
 
   function restoreScrollPosition() {
     const scrolledItemId = sessionStorage.getItem('scroll-to-item-id');
     if (scrolledItemId) {
-      // Use requestAnimationFrame for better performance
       requestAnimationFrame(() => {
-        // Add extra delay for older iOS devices
-        const delay = isOldIOS ? 1000 : (isIOS ? 500 : 100);
         setTimeout(() => {
           const element = document.getElementById(scrolledItemId);
           if (element) {
-            // Use different scroll methods for better compatibility
-            if (isOldIOS || isSafari) {
-              // Fallback for older Safari versions
+            // Safari iOS não aceita "instant"
+            if (isSafari && isIOS) {
+              // iPhone 7 Safari specific fix
               const rect = element.getBoundingClientRect();
               const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-              window.scrollTo(0, rect.top + scrollTop - (window.innerHeight / 2));
+              window.scrollTo(0, rect.top + scrollTop - 100);
             } else {
-              // Modern scroll method
               element.scrollIntoView({ behavior: 'auto', block: 'center' });
             }
           }
           sessionStorage.removeItem('scroll-to-item-id');
-        }, delay);
+        }, isIOS ? 500 : 100); // no iOS dar mais tempo ajuda
       });
     }
   }
 
   function setupCollapsibles() {
     document.querySelectorAll('.collapsible').forEach(header => {
-      // Use a more robust check for attached listeners
-      if (header.dataset.listenerAttached) return;
+      if (header.dataset.listenerAttached === 'true') return;
       header.dataset.listenerAttached = 'true';
 
       const container = header.nextElementSibling;
@@ -57,75 +51,65 @@ export { application }
       }
 
       function toggleCollapse(event) {
-        // Prevent default behavior for all events
-        event.preventDefault();
-        event.stopPropagation();
+        event.preventDefault(); // ajuda no Safari iOS
         
-        // Add a small delay to ensure DOM is ready
+        // Add small delay for iPhone 7 Safari
         setTimeout(() => {
           const isCollapsed = header.classList.toggle('collapsed');
           const content = header.nextElementSibling;
           content.classList.toggle('collapsed', isCollapsed);
 
-          // Use different animation methods for better compatibility
-          if (isOldIOS || isSafari) {
-            // Fallback for older Safari versions
-            content.style.transition = 'none';
-            content.style.maxHeight = isCollapsed ? '0px' : content.scrollHeight + "px";
-            content.style.overflow = isCollapsed ? 'hidden' : 'visible';
-            
-            // Force reflow
-            content.offsetHeight;
-            
-            // Re-enable transition after a frame
-            setTimeout(() => {
-              content.style.transition = 'max-height 0.3s ease-out';
-            }, 50);
+          // iPhone 7 Safari specific handling
+          if (isSafari && isIOS) {
+            if (isCollapsed) {
+              content.style.maxHeight = '0px';
+              content.style.overflow = 'hidden';
+            } else {
+              // Force reflow for iPhone 7 Safari
+              content.style.maxHeight = 'none';
+              content.offsetHeight; // Trigger reflow
+              content.style.maxHeight = content.scrollHeight + "px";
+              content.style.overflow = 'visible';
+            }
           } else {
-            // Modern approach
-            content.style.maxHeight = isCollapsed ? '0px' : content.scrollHeight + "px";
+            // Standard behavior for other browsers
+            if (isCollapsed) {
+              content.style.maxHeight = '0px';
+            } else {
+              content.style.maxHeight = content.scrollHeight + "px";
+            }
           }
 
-          // Update parent containers
           setTimeout(() => {
             const parentContainer = header.closest('.items-container:not(.collapsed)');
             if (parentContainer) {
-              if (isOldIOS || isSafari) {
-                parentContainer.style.transition = 'none';
+              // iPhone 7 Safari specific handling
+              if (isSafari && isIOS) {
+                parentContainer.style.maxHeight = 'none';
+                parentContainer.offsetHeight; // Trigger reflow
                 parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
-                parentContainer.offsetHeight;
-                setTimeout(() => {
-                  parentContainer.style.transition = 'max-height 0.3s ease-out';
-                }, 50);
               } else {
                 parentContainer.style.maxHeight = parentContainer.scrollHeight + "px";
               }
             }
           }, 300);
-        }, 10);
+        }, isIOS ? 50 : 0); // Small delay for iOS devices
       }
 
-      // Add multiple event listeners for better compatibility
+      // click normal (desktop + Android)
       header.addEventListener('click', toggleCollapse);
+      // suporte ao tap no iOS
       header.addEventListener('touchend', toggleCollapse);
-      
-      // Additional events for older Safari
-      if (isOldIOS || isSafari) {
-        header.addEventListener('touchstart', function(e) {
-          e.preventDefault();
-        });
-        header.addEventListener('mousedown', toggleCollapse);
-      }
     });
   }
 
   function setupSearchFilter() {
     const searchInput = document.getElementById('item-search-input');
-    // More robust check for existing listeners
-    if (!searchInput || searchInput.dataset.searchInitialized) {
+    // Previne múltiplos listeners em re-renderizações do Turbo
+    if (!searchInput || searchInput.dataset.searchAttached) {
       return;
     }
-    searchInput.dataset.searchInitialized = 'true';
+    searchInput.dataset.searchAttached = 'true';
 
     function filterItems() {
       const searchTerm = this.value.toLowerCase().trim();
@@ -148,15 +132,11 @@ export { application }
           const container = header.nextElementSibling;
           if (header.classList.contains('collapsed')) {
             header.classList.remove('collapsed');
-            // Better compatibility for expanding containers
-            if (isOldIOS || isSafari) {
-              container.style.transition = 'none';
+            // iPhone 7 Safari specific handling
+            if (isSafari && isIOS) {
+              container.style.maxHeight = 'none';
+              container.offsetHeight; // Trigger reflow
               container.style.maxHeight = container.scrollHeight + "px";
-              container.style.overflow = 'visible';
-              container.offsetHeight;
-              setTimeout(() => {
-                container.style.transition = 'max-height 0.3s ease-out';
-              }, 50);
             } else {
               container.style.maxHeight = container.scrollHeight + "px";
             }
@@ -175,15 +155,11 @@ export { application }
           const container = header.nextElementSibling;
           if (header.classList.contains('collapsed')) {
             header.classList.remove('collapsed');
-            // Better compatibility for expanding containers
-            if (isOldIOS || isSafari) {
-              container.style.transition = 'none';
+            // iPhone 7 Safari specific handling
+            if (isSafari && isIOS) {
+              container.style.maxHeight = 'none';
+              container.offsetHeight; // Trigger reflow
               container.style.maxHeight = container.scrollHeight + "px";
-              container.style.overflow = 'visible';
-              container.offsetHeight;
-              setTimeout(() => {
-                container.style.transition = 'max-height 0.3s ease-out';
-              }, 50);
             } else {
               container.style.maxHeight = container.scrollHeight + "px";
             }
@@ -192,55 +168,30 @@ export { application }
       });
     }
 
-    // Multiple event listeners for better compatibility with older Safari
+    // Safari iOS pode falhar só com "input", então adicionamos "keyup"
     searchInput.addEventListener('input', filterItems);
     searchInput.addEventListener('keyup', filterItems);
-    searchInput.addEventListener('search', filterItems); // For search cancel button
     
-    // Additional events for older Safari
-    if (isOldIOS || isSafari) {
-      searchInput.addEventListener('compositionend', filterItems); // For CJK input
-      searchInput.addEventListener('paste', function() {
-        setTimeout(filterItems.bind(this), 100); // Delay for paste operations
-      });
+    // Additional event listener for iPhone 7 Safari
+    if (isIOS && isSafari) {
+      searchInput.addEventListener('search', filterItems);
     }
   }
 
   function initializePage() {
-    // Add a small delay to ensure DOM is fully ready
-    setTimeout(() => {
-      setupCollapsibles();
-      restoreScrollPosition();
-      setupSearchFilter();
-    }, 50);
+    setupCollapsibles();
+    restoreScrollPosition();
+    setupSearchFilter();
   }
 
-  // Multiple event listeners for better compatibility
   document.addEventListener('turbo:load', initializePage);
   document.addEventListener('turbo:render', () => {
-    // Reset flags for re-initialization
+    // reseta flag para o campo de busca reanexar no iOS
     const searchInput = document.getElementById('item-search-input');
-    if (searchInput) {
-      searchInput.dataset.searchInitialized = '';
-      // Remove all collapsible listener flags
-      document.querySelectorAll('.collapsible').forEach(header => {
-        header.dataset.listenerAttached = '';
-      });
-    }
+    if (searchInput) searchInput.dataset.searchAttached = '';
     initializePage();
   });
   document.addEventListener('DOMContentLoaded', initializePage);
-  
-  // Additional initialization for older browsers
-  if (document.readyState === 'loading') {
-    document.addEventListener('readystatechange', function() {
-      if (document.readyState === 'interactive') {
-        initializePage();
-      }
-    });
-  } else {
-    initializePage();
-  }
 
   // Salvar posição antes de submit
   document.addEventListener('submit', function(event) {
@@ -254,25 +205,7 @@ export { application }
   // Fix para bug de teclado no iOS
   if (isIOS) {
     window.addEventListener('focusout', () => {
-      setTimeout(() => {
-        window.scrollTo(0, window.scrollY);
-      }, 50);
+      setTimeout(() => { window.scrollTo(0, window.scrollY); }, 50);
     });
-    
-    // Additional fix for older iOS versions
-    if (isOldIOS) {
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          window.scrollTo(0, 0);
-        }, 500);
-      });
-    }
-  }
-  
-  // Fallback for browsers that don't support some features
-  if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = function(callback) {
-      return setTimeout(callback, 16);
-    };
   }
 })();
